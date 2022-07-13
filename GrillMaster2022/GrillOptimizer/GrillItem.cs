@@ -19,6 +19,8 @@ namespace GrillOptimizer
         public int AreaSq => _width * _height;
         public Size Dimensions => new(_width, _height);
         public Point Location => new(_x, _y);
+        public Rect UsedArea => new (_x, _y, _width, _height);
+
 
         private readonly int _group;
         private readonly int _id;
