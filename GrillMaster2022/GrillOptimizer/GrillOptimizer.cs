@@ -9,34 +9,66 @@ namespace GrillOptimizer
 {
     internal class GrillOptimizer
     {
-        public int Width => grillWidth;
-        public int Height => grillHeight;
-        public List<GrillItem> ItemsToGrill => itemsToGrill;
+        public int Width => _grillWidth;
+        public int Height => _grillHeight;
+        public GrillItemsList ItemsToGrill => _itemsToGrill;
 
-        private readonly int grillWidth;
-        private readonly int grillHeight;
-        private readonly List<GrillItem> itemsToGrill = new ();
+        private readonly int _grillWidth;
+        private readonly int _grillHeight;
+        private readonly GrillItemsList _itemsToGrill = new ();
 
         public GrillOptimizer(GrillOrder grillOrder)
         {
             if (grillOrder is null) throw new ArgumentNullException(nameof(grillOrder));
 
-            grillWidth = grillOrder.GrillSize.Width;
-            grillHeight = grillOrder.GrillSize.Height;
+            _grillWidth = grillOrder.GrillSize.Width;
+            _grillHeight = grillOrder.GrillSize.Height;
+
+            grillOrder.MenuItems.Sort((a, b) => b.Dimensions.Squares.CompareTo(a.Dimensions.Squares));
 
             int grillItemGroup = 0;
-            foreach (var grillOrderItem in grillOrder.MenuItems)
+            foreach (GrillOrderItem grillOrderItem in grillOrder.MenuItems)
             {
-                for (int i = 0; i < grillOrderItem.Count; i++)
+                for (var i = 0; i < grillOrderItem.Count; i++)
                 {
                     GrillItem grillItem = new(grillItemGroup, i, grillOrderItem);
-                    itemsToGrill.Add(grillItem);
+                    _itemsToGrill.Add(grillItem);
                 }
                 grillItemGroup++;
             }
 
-            itemsToGrill.Sort((a, b) => { return a.AreaSq.CompareTo(b.AreaSq); });
+            //_itemsToGrill.Sort((a, b) => { return b.AreaSq.CompareTo(a.AreaSq); });
         }
 
+        public async Task<List<GrillPan>> RunAsync()
+        {
+            List<GrillPan> panes = new List<GrillPan>();
+            while (_itemsToGrill.UngrilledCount > 0)
+            {
+                GrillPan grillPan = new (_grillWidth, _grillHeight);
+                await grillPan.GrillAsync(_itemsToGrill);
+                if (grillPan.IsEmpty && _itemsToGrill.Count > 0)
+                {
+                    throw new GrillItemTooBigException();
+                }
+                panes.Add(grillPan);
+            }
+            return panes;
+        }
+
+        public IEnumerable<(GrillPan, int)> RunStepByStep()
+        {
+            while (_itemsToGrill.UngrilledCount > 0)
+            {
+                GrillPan grillPan = new(_grillWidth, _grillHeight);
+                foreach(int step in grillPan.GrillStepByStep(_itemsToGrill))
+                    yield return (grillPan, step);
+
+                if (grillPan.IsEmpty && _itemsToGrill.UngrilledCount > 0)
+                {
+                    throw new GrillItemTooBigException();
+                }
+            }
+        }
     }
 }

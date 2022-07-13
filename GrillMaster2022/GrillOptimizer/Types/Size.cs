@@ -7,9 +7,7 @@ namespace GrillOptimizer.Types
     {
         public int Width { get; }
         public int Height { get; }
-        [JsonIgnore]
         public bool IsEmpty => Width == 0 || Height == 0;
-        [JsonIgnore]
         public int Squares => Width * Height;
 
         [JsonConstructor]

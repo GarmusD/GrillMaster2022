@@ -11,7 +11,6 @@ namespace GrillOptimizer
         public Size GrillSize { get; }
         public List<GrillOrderItem> MenuItems { get; }
 
-        [JsonConstructor]
         public GrillOrder(Size grillSize, List<GrillOrderItem> menuItems)
         {
             GrillSize = grillSize;
@@ -25,7 +24,6 @@ namespace GrillOptimizer
         public string Name { get; }
         public int Count { get; }
 
-        [JsonConstructor]
         public GrillOrderItem(Size dimensions, string name, int count)
         {
             Dimensions = dimensions;

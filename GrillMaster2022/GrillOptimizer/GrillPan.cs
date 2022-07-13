@@ -1,5 +1,6 @@
 ﻿using GrillOptimizer.Types;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -9,73 +10,165 @@ namespace GrillOptimizer
 {
     internal class GrillPan
     {
-        public bool IsEmpty => !grillItems.Any();
-
-        private readonly int grillPanWidth;
-        private readonly int grillPanHeight;
-        private readonly List<GrillItem> grillItems = new();
-        private readonly List<Rect> availableAreas = new();
+        public int Width => _grillPanWidth;
+        public int Height => _grillPanHeight;
+        public bool IsEmpty => !_grilledItems.Any();
+        public List<GrillItem> GrilledItems => _grilledItems;
+        public GrillItemsList? ItemsToGrill { get; private set; } = null;
+#if DEBUG
+        public List<Rect> AvailableAreas => _availableAreas;
+#endif
+        private readonly int _grillPanWidth;
+        private readonly int _grillPanHeight;
+        private readonly List<GrillItem> _grilledItems = new();
+        private readonly List<Rect> _availableAreas = new();
 
         public GrillPan(int width, int height)
         {
-            grillPanWidth = width;
-            grillPanHeight = height;
-            availableAreas.Add(new Rect(0, 0, grillPanWidth, grillPanHeight));
+            _grillPanWidth = width;
+            _grillPanHeight = height;
+            _availableAreas.Add(new Rect(0, 0, _grillPanWidth, _grillPanHeight));
         }
 
         /// <summary>
         /// How it works: 
         /// It takes first available biggest ungrilled item and tries to fit 
-        /// it into one of available areas wit enought squares.
+        /// it into one of available areas with enought squares.
         /// If not fitting - rotate 90 degrees and try again. 
         /// If still not fitting - take next smaller item.
         /// </summary>
         /// <param name="grillItems">List of items to grill</param>
         /// <returns></returns>
-        public Task PutGrillItemsAsync(GrillItemsList grillItems)
+        public Task GrillAsync(GrillItemsList grillItems)
         {
+            ItemsToGrill = grillItems;
             return Task.Run(() => 
             {
-                for(int i = 0; i < grillItems.GroupsCount; i++)
+                for(int group = 0; group < grillItems.GroupsCount; group++)
                 {
-                    GrillItem? grillItem = grillItems.GetUngrilledItem(i);
-                    if(grillItem is null) continue;
-                    if (TryFitGrillItem(grillItem))
+                    GrillItem? grillItem = grillItems.GetUngrilledItem(group);
+                    while (grillItem is not null)
                     {
-                        CalculateAvailableAreas();
+                        if (!TryFitGrillItem(grillItem))
+                        {
+                            break;
+                        }
+                        grillItem = grillItems.GetUngrilledItem(group);
                     }
-                    else continue;
                 }
             });
         }
 
+        public IEnumerable<int> GrillStepByStep(GrillItemsList grillItems)
+        {
+            ItemsToGrill = grillItems;
+            int currentStep = 0;
+            for (int group = 0; group < grillItems.GroupsCount; group++)
+            {
+                GrillItem? grillItem = grillItems.GetUngrilledItem(group);
+                while (grillItem is not null)
+                {
+                    if (!TryFitGrillItem(grillItem))
+                    {
+                        break;
+                    }
+                    yield return currentStep++;
+                    grillItem = grillItems.GetUngrilledItem(group);
+                }
+            }
+        }
+        
+
         private bool TryFitGrillItem(GrillItem grillItem)
         {
-            foreach (var area in availableAreas)
+            foreach (Rect area in _availableAreas)
             {
                 if(area.AreaSq >= grillItem.AreaSq)
                 {
+                    bool doFit = false;
                     if (area.CanFit(grillItem.Dimensions))
                     {
-                        return true;
+                        doFit = true;
                     }
                     else if(area.CanFitRotated(grillItem.Dimensions))
                     {
                         grillItem.Rotated = true;
+                        doFit = true;
+                    }
+
+                    if(doFit)
+                    {
+                        FitGrillItem(area, grillItem);
+                        return true;
                     }
                 }
             }
             return false;
         }
 
-        private void CalculateAvailableAreas()
+        private void FitGrillItem(Rect area, GrillItem grillItem)
         {
-            availableAreas.Clear();
+            grillItem.SetItemGrilled(area.Location);
+            _grilledItems.Add(grillItem);
+            var sub = area.Subtract(grillItem.Dimensions);
+            // area is used, remove it from list
+            _availableAreas.Remove(area);
+            _availableAreas.AddRange(sub);
+            PostProcessAvailableAreas();
         }
 
-        private void SubtractArea()
+        private void PostProcessAvailableAreas()
         {
-
+            SortAvailableAreasBySq();
+            EatInnerAreas();
+            SortAvailableAreasByYX();
         }
+
+        private void EatInnerAreas()
+        {
+            System.Diagnostics.Debug.WriteLine("EatInnerAreas()");
+            bool done = false;
+            while(!done)
+            {
+                done = true;
+                for(int i = 0; i < _availableAreas.Count - 1; i++)
+                {
+                    Rect area = _availableAreas[i];
+                    for (int j = i + 1; j < _availableAreas.Count; j++)
+                    {
+                        Rect innerArea = _availableAreas[j];
+                        System.Diagnostics.Debug.WriteLine($"Comapring [(X:{area.X},Y:{area.Y}), (W:{area.Width},H:{area.Height})] vs [(X:{innerArea.X},Y:{innerArea.Y}), (W:{innerArea.Width},H:{innerArea.Height})]");
+                        if(area.Contains(innerArea))
+                        {
+                            System.Diagnostics.Debug.WriteLine("area contains innerArea. Removing innerArea.");
+                            done = false;
+                            _availableAreas.Remove(innerArea);
+                            break;
+                        }
+                    }
+                    if (!done) break;
+                }
+            }
+        }
+
+        private void SortAvailableAreasBySq()
+        {
+            _availableAreas.Sort((a, b) => { return b.AreaSq.CompareTo(a.AreaSq); });
+        }
+
+        private void SortAvailableAreasByYX()
+        {
+            //_availableAreas.Sort((a, b) => { return a.AreaSq.CompareTo(b.AreaSq); });
+            _availableAreas.Sort((a, b) =>
+            {
+                int cmprRes = b.X.CompareTo(a.X);
+                if (cmprRes == 0)
+                {
+                    cmprRes = b.Y.CompareTo(a.Y);
+                }
+                return cmprRes;
+            });
+        }
+
     }
 }
