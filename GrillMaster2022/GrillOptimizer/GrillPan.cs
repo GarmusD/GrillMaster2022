@@ -110,10 +110,13 @@ namespace GrillOptimizer
         {
             grillItem.SetItemGrilled(area.Location);
             _grilledItems.Add(grillItem);
-            var sub = area.Subtract(grillItem.Dimensions);
+            List<Rect> subtractedAreas = area.Subtract(grillItem.Dimensions);
             // area is used, remove it from list
             _availableAreas.Remove(area);
-            _availableAreas.AddRange(sub);
+            // find other intersected areas
+            subtractedAreas.AddRange(FindAndSubractIntersectedAreas(grillItem.UsedArea));
+            _availableAreas.AddRange(subtractedAreas);
+            // merge inner areas, expand overlapped
             PostProcessAvailableAreas();
         }
 
@@ -124,23 +127,51 @@ namespace GrillOptimizer
             SortAvailableAreasByYX();
         }
 
+        private List<Rect> FindAndSubractIntersectedAreas(Rect grilledItemArea)
+        {
+            List<Rect> result = new ();
+            Rect intersectedArea = FindIntersectedArea(grilledItemArea);
+            while(!intersectedArea.IsEmpty)
+            {
+                _availableAreas.Remove(intersectedArea);
+                result.AddRange(intersectedArea.Subtract(grilledItemArea));
+                intersectedArea = FindIntersectedArea(grilledItemArea);
+            }
+            return result;
+        }
+
+        private Rect FindIntersectedArea(Rect grilledItemArea)
+        {
+            foreach (Rect area in _availableAreas)
+            {
+                if(area.IntersectsWith(grilledItemArea))
+                    return area;
+            }
+            return Rect.Empty;
+        }
+
         private void EatInnerAreas()
         {
             System.Diagnostics.Debug.WriteLine("EatInnerAreas()");
             bool done = false;
-            while(!done)
+            int diagItersTotal = 0;
+            while (!done)
             {
+                System.Diagnostics.Debug.WriteLine("Starting check of areas...");
+                int diagIters = 0;                
                 done = true;
                 for(int i = 0; i < _availableAreas.Count - 1; i++)
                 {
                     Rect area = _availableAreas[i];
                     for (int j = i + 1; j < _availableAreas.Count; j++)
                     {
+                        diagIters++;
+                        diagItersTotal++;
                         Rect innerArea = _availableAreas[j];
-                        System.Diagnostics.Debug.WriteLine($"Comapring [(X:{area.X},Y:{area.Y}), (W:{area.Width},H:{area.Height})] vs [(X:{innerArea.X},Y:{innerArea.Y}), (W:{innerArea.Width},H:{innerArea.Height})]");
+                        //System.Diagnostics.Debug.WriteLine($"Comapring [(X:{area.X},Y:{area.Y}), (W:{area.Width},H:{area.Height})] vs [(X:{innerArea.X},Y:{innerArea.Y}), (W:{innerArea.Width},H:{innerArea.Height})]");
                         if(area.Contains(innerArea))
                         {
-                            System.Diagnostics.Debug.WriteLine("area contains innerArea. Removing innerArea.");
+                            System.Diagnostics.Debug.WriteLine($"'area' contains 'innerArea'. Removing 'innerArea' and re-checking. (Done in {diagIters} iterations)");
                             done = false;
                             _availableAreas.Remove(innerArea);
                             break;
@@ -149,6 +180,7 @@ namespace GrillOptimizer
                     if (!done) break;
                 }
             }
+            System.Diagnostics.Debug.WriteLine($"EatInnerAreas() done. Total iterations: {diagItersTotal}");
         }
 
         private void SortAvailableAreasBySq()
@@ -159,15 +191,9 @@ namespace GrillOptimizer
         private void SortAvailableAreasByYX()
         {
             //_availableAreas.Sort((a, b) => { return a.AreaSq.CompareTo(b.AreaSq); });
-            _availableAreas.Sort((a, b) =>
-            {
-                int cmprRes = b.X.CompareTo(a.X);
-                if (cmprRes == 0)
-                {
-                    cmprRes = b.Y.CompareTo(a.Y);
-                }
-                return cmprRes;
-            });
+            _availableAreas.Sort((a, b) => { return a.X.CompareTo(b.X); });
+            _availableAreas.Sort((a, b) => { return a.Y.CompareTo(b.Y); });
+            
         }
 
     }
