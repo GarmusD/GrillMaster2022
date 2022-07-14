@@ -1,12 +1,7 @@
 ﻿using GrillMaster2022.DTO;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+
 
 namespace GrillMaster2022.GrillOptimizer
-
 {
     public class GrillOptimizer
     {
