@@ -1,5 +1,6 @@
 ﻿using GrillMaster2022.GrillOptimizer.Types;
 
+
 namespace GrillMaster2022.GrillOptimizer
 {
     public class GrillPan
