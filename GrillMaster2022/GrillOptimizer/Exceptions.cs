@@ -1,6 +1,4 @@
 ﻿namespace GrillMaster2022.GrillOptimizer
 {
-    public class GrillItemTooBigException : Exception
-    {
-    }
+    public class GrillItemTooBigException : Exception { }
 }
