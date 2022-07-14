@@ -1,13 +1,14 @@
-﻿using System;
+﻿using GrillMaster2022.DTO;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace GrillOptimizer
+namespace GrillMaster2022.GrillOptimizer
 
 {
-    internal class GrillOptimizer
+    public class GrillOptimizer
     {
         public int Width => _grillWidth;
         public int Height => _grillHeight;
@@ -36,17 +37,15 @@ namespace GrillOptimizer
                 }
                 grillItemGroup++;
             }
-
-            //_itemsToGrill.Sort((a, b) => { return b.AreaSq.CompareTo(a.AreaSq); });
         }
 
-        public async Task<List<GrillPan>> RunAsync()
+        public List<GrillPan> Run()
         {
-            List<GrillPan> panes = new List<GrillPan>();
+            List<GrillPan> panes = new ();
             while (_itemsToGrill.UngrilledCount > 0)
             {
                 GrillPan grillPan = new (_grillWidth, _grillHeight);
-                await grillPan.GrillAsync(_itemsToGrill);
+                grillPan.Grill(_itemsToGrill);
                 if (grillPan.IsEmpty && _itemsToGrill.Count > 0)
                 {
                     throw new GrillItemTooBigException();

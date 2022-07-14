@@ -1,20 +1,14 @@
-﻿using GrillOptimizer.Types;
-using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using GrillMaster2022.GrillOptimizer.Types;
 
-namespace GrillOptimizer
+namespace GrillMaster2022.GrillOptimizer
 {
-    internal class GrillPan
+    public class GrillPan
     {
         public int Width => _grillPanWidth;
         public int Height => _grillPanHeight;
         public bool IsEmpty => !_grilledItems.Any();
         public List<GrillItem> GrilledItems => _grilledItems;
-        public GrillItemsList? ItemsToGrill { get; private set; } = null;
+        public GrillItemsList? ItemsToGrill => _itemsToGrill;
 #if DEBUG
         public List<Rect> AvailableAreas => _availableAreas;
 #endif
@@ -22,6 +16,7 @@ namespace GrillOptimizer
         private readonly int _grillPanHeight;
         private readonly List<GrillItem> _grilledItems = new();
         private readonly List<Rect> _availableAreas = new();
+        private GrillItemsList? _itemsToGrill = null;
 
         public GrillPan(int width, int height)
         {
@@ -32,75 +27,44 @@ namespace GrillOptimizer
 
         /// <summary>
         /// How it works: 
-        /// It takes first available biggest ungrilled item and tries to fit 
-        /// it into one of available areas with enought squares.
-        /// If not fitting - rotate 90 degrees and try again. 
-        /// If still not fitting - take next smaller item.
+        /// It takes first topmost available area and tries to fit 
+        /// biggest ungrilled item.
+        /// If none fits - try fit items rotated by 90 degrees. 
+        /// If none fits anyway - here is done.
         /// </summary>
         /// <param name="grillItems">List of items to grill</param>
         /// <returns></returns>
-        public Task GrillAsync(GrillItemsList grillItems)
+        public void Grill(GrillItemsList grillItems)
         {
-            ItemsToGrill = grillItems;
-            return Task.Run(() => 
-            {
-                for(int group = 0; group < grillItems.GroupsCount; group++)
-                {
-                    GrillItem? grillItem = grillItems.GetUngrilledItem(group);
-                    while (grillItem is not null)
-                    {
-                        if (!TryFitGrillItem(grillItem))
-                        {
-                            break;
-                        }
-                        grillItem = grillItems.GetUngrilledItem(group);
-                    }
-                }
-            });
+            _itemsToGrill = grillItems;
+            while (TryFitGrillItem()) {}
         }
 
         public IEnumerable<int> GrillStepByStep(GrillItemsList grillItems)
         {
-            ItemsToGrill = grillItems;
+            _itemsToGrill = grillItems;
             int currentStep = 0;
-            for (int group = 0; group < grillItems.GroupsCount; group++)
+            while (TryFitGrillItem())
             {
-                GrillItem? grillItem = grillItems.GetUngrilledItem(group);
-                while (grillItem is not null)
-                {
-                    if (!TryFitGrillItem(grillItem))
-                    {
-                        break;
-                    }
-                    yield return currentStep++;
-                    grillItem = grillItems.GetUngrilledItem(group);
-                }
+                yield return currentStep++;
             }
         }
-        
 
-        private bool TryFitGrillItem(GrillItem grillItem)
+        private bool TryFitGrillItem()
         {
-            foreach (Rect area in _availableAreas)
+            foreach (Rect availArea in _availableAreas)
             {
-                if(area.AreaSq >= grillItem.AreaSq)
+                GrillItem? itemToGrill;
+                if ((itemToGrill = _itemsToGrill?.GetFittableItem(availArea)) is not null)
                 {
-                    bool doFit = false;
-                    if (area.CanFit(grillItem.Dimensions))
-                    {
-                        doFit = true;
-                    }
-                    else if(area.CanFitRotated(grillItem.Dimensions))
-                    {
-                        grillItem.Rotated = true;
-                        doFit = true;
-                    }
-
-                    if(doFit)
-                    {
-                        FitGrillItem(area, grillItem);
-                        return true;
-                    }
+                    FitGrillItem(availArea, itemToGrill);
+                    return true;
+                }
+                else if ((itemToGrill = _itemsToGrill?.GetFittableItem(availArea, true)) is not null)
+                {
+                    itemToGrill.Rotated = true;
+                    FitGrillItem(availArea, itemToGrill);
+                    return true;
                 }
             }
             return false;
@@ -110,77 +74,40 @@ namespace GrillOptimizer
         {
             grillItem.SetItemGrilled(area.Location);
             _grilledItems.Add(grillItem);
-            List<Rect> subtractedAreas = area.Subtract(grillItem.Dimensions);
-            // area is used, remove it from list
-            _availableAreas.Remove(area);
-            // find other intersected areas
-            subtractedAreas.AddRange(FindAndSubractIntersectedAreas(grillItem.UsedArea));
-            _availableAreas.AddRange(subtractedAreas);
-            // merge inner areas, expand overlapped
+            FindAndSubractIntersectedAreas(grillItem.UsedArea);
             PostProcessAvailableAreas();
         }
 
         private void PostProcessAvailableAreas()
         {
-            SortAvailableAreasBySq();
             EatInnerAreas();
             SortAvailableAreasByYX();
         }
-
-        private List<Rect> FindAndSubractIntersectedAreas(Rect grilledItemArea)
-        {
-            List<Rect> result = new ();
-            Rect intersectedArea = FindIntersectedArea(grilledItemArea);
-            while(!intersectedArea.IsEmpty)
-            {
-                _availableAreas.Remove(intersectedArea);
-                result.AddRange(intersectedArea.Subtract(grilledItemArea));
-                intersectedArea = FindIntersectedArea(grilledItemArea);
-            }
-            return result;
-        }
-
-        private Rect FindIntersectedArea(Rect grilledItemArea)
-        {
-            foreach (Rect area in _availableAreas)
-            {
-                if(area.IntersectsWith(grilledItemArea))
-                    return area;
-            }
-            return Rect.Empty;
-        }
-
+        
         private void EatInnerAreas()
         {
-            System.Diagnostics.Debug.WriteLine("EatInnerAreas()");
-            bool done = false;
-            int diagItersTotal = 0;
-            while (!done)
+            SortAvailableAreasBySq();
+            List<Rect> innerAreas = new();
+            foreach (var area in _availableAreas)
             {
-                System.Diagnostics.Debug.WriteLine("Starting check of areas...");
-                int diagIters = 0;                
-                done = true;
-                for(int i = 0; i < _availableAreas.Count - 1; i++)
-                {
-                    Rect area = _availableAreas[i];
-                    for (int j = i + 1; j < _availableAreas.Count; j++)
-                    {
-                        diagIters++;
-                        diagItersTotal++;
-                        Rect innerArea = _availableAreas[j];
-                        //System.Diagnostics.Debug.WriteLine($"Comapring [(X:{area.X},Y:{area.Y}), (W:{area.Width},H:{area.Height})] vs [(X:{innerArea.X},Y:{innerArea.Y}), (W:{innerArea.Width},H:{innerArea.Height})]");
-                        if(area.Contains(innerArea))
-                        {
-                            System.Diagnostics.Debug.WriteLine($"'area' contains 'innerArea'. Removing 'innerArea' and re-checking. (Done in {diagIters} iterations)");
-                            done = false;
-                            _availableAreas.Remove(innerArea);
-                            break;
-                        }
-                    }
-                    if (!done) break;
-                }
+                innerAreas.AddRange(_availableAreas.Where(x => !x.Equals(area) && area.Contains(x)).ToList());
             }
-            System.Diagnostics.Debug.WriteLine($"EatInnerAreas() done. Total iterations: {diagItersTotal}");
+            foreach (var area in innerAreas)
+            {
+                _availableAreas.Remove(area);
+            }
+        }
+
+        private void FindAndSubractIntersectedAreas(Rect grilledItemArea)
+        {
+            var intersectedAreas = _availableAreas.Where(area => area.IntersectsWith(grilledItemArea)).ToList();
+            List<Rect> subtractedAreas = new();
+            foreach (var area in intersectedAreas)
+            {
+                _availableAreas.Remove(area);
+                subtractedAreas.AddRange(area.Subtract(grilledItemArea));
+            }
+            _availableAreas.AddRange(subtractedAreas);
         }
 
         private void SortAvailableAreasBySq()
@@ -190,10 +117,12 @@ namespace GrillOptimizer
 
         private void SortAvailableAreasByYX()
         {
-            //_availableAreas.Sort((a, b) => { return a.AreaSq.CompareTo(b.AreaSq); });
-            _availableAreas.Sort((a, b) => { return a.X.CompareTo(b.X); });
-            _availableAreas.Sort((a, b) => { return a.Y.CompareTo(b.Y); });
-            
+            _availableAreas.Sort((a, b) => 
+            { 
+                var result = a.Location.Y.CompareTo(b.Location.Y);
+                if (result == 0) result = a.Location.X.CompareTo(b.Location.X);
+                return result;
+            });
         }
 
     }

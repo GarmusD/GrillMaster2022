@@ -1,6 +1,6 @@
-﻿namespace GrillOptimizer.Types
+﻿namespace GrillMaster2022.GrillOptimizer.Types
 {
-    internal struct Point
+    public struct Point
     {
         public int X { get; }
         public int Y { get; }

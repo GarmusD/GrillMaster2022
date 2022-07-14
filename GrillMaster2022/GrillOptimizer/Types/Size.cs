@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Text.Json.Serialization;
 
-namespace GrillOptimizer.Types
+namespace GrillMaster2022.GrillOptimizer.Types
 {
-    internal struct Size
+    public struct Size
     {
         public int Width { get; }
         public int Height { get; }

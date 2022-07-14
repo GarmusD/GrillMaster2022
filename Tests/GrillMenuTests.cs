@@ -1,6 +1,8 @@
+using GrillMaster2022.DTO;
+using GrillMaster2022.GrillOptimizer.Types;
 using System.Text.Json;
 
-namespace GrillOptimizerTests
+namespace GrillMaster2022.Tests
 {
     public class GrillMenuTests
     {

@@ -1,11 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using GrillMaster2022.GrillOptimizer.Types;
 
-
-namespace GrillOptimizerTests
+namespace GrillMaster2022.Tests
 {
     internal class RectTests
     {
@@ -100,16 +95,16 @@ namespace GrillOptimizerTests
 
                 Rect rect = result[0];
                 Assert.That(rect.IsEmpty, Is.False);
-                Assert.That(rect.X, Is.EqualTo(TestRectW));
-                Assert.That(rect.Y, Is.EqualTo(0));
+                Assert.That(rect.Left, Is.EqualTo(TestRectW));
+                Assert.That(rect.Top, Is.EqualTo(0));
                 Assert.That(rect.Width, Is.EqualTo(MainRectWidth - TestRectW));
                 Assert.That(rect.Height, Is.EqualTo(MainRectHeight));
 
 
                 rect = result[1];
                 Assert.That(rect.IsEmpty, Is.False);
-                Assert.That(rect.X, Is.EqualTo(0));
-                Assert.That(rect.Y, Is.EqualTo(TestRectH));
+                Assert.That(rect.Left, Is.EqualTo(0));
+                Assert.That(rect.Top, Is.EqualTo(TestRectH));
                 Assert.That(rect.Width, Is.EqualTo(MainRectWidth));
                 Assert.That(rect.Height, Is.EqualTo(MainRectHeight - TestRectH));
             });
@@ -128,16 +123,16 @@ namespace GrillOptimizerTests
 
                 Rect rect = result[0];
                 Assert.That(rect.IsEmpty, Is.False);
-                Assert.That(rect.X, Is.EqualTo(0));
-                Assert.That(rect.Y, Is.EqualTo(0));
+                Assert.That(rect.Left, Is.EqualTo(0));
+                Assert.That(rect.Top, Is.EqualTo(0));
                 Assert.That(rect.Width, Is.EqualTo(MainRectWidth - TestRectW));
                 Assert.That(rect.Height, Is.EqualTo(MainRectHeight));
 
 
                 rect = result[1];
                 Assert.That(rect.IsEmpty, Is.False);
-                Assert.That(rect.X, Is.EqualTo(0));
-                Assert.That(rect.Y, Is.EqualTo(TestRectH));
+                Assert.That(rect.Left, Is.EqualTo(0));
+                Assert.That(rect.Top, Is.EqualTo(TestRectH));
                 Assert.That(rect.Width, Is.EqualTo(MainRectWidth));
                 Assert.That(rect.Height, Is.EqualTo(MainRectHeight - TestRectH));
             });
@@ -156,16 +151,16 @@ namespace GrillOptimizerTests
 
                 Rect rect = result[0];
                 Assert.That(rect.IsEmpty, Is.False);
-                Assert.That(rect.X, Is.EqualTo(0));
-                Assert.That(rect.Y, Is.EqualTo(0));
+                Assert.That(rect.Left, Is.EqualTo(0));
+                Assert.That(rect.Top, Is.EqualTo(0));
                 Assert.That(rect.Width, Is.EqualTo(MainRectWidth));
                 Assert.That(rect.Height, Is.EqualTo(MainRectHeight - TestRectH));
 
 
                 rect = result[1];
                 Assert.That(rect.IsEmpty, Is.False);
-                Assert.That(rect.X, Is.EqualTo(TestRectW));
-                Assert.That(rect.Y, Is.EqualTo(0));
+                Assert.That(rect.Left, Is.EqualTo(TestRectW));
+                Assert.That(rect.Top, Is.EqualTo(0));
                 Assert.That(rect.Width, Is.EqualTo(MainRectWidth - TestRectW));
                 Assert.That(rect.Height, Is.EqualTo(MainRectHeight));
             });
@@ -184,16 +179,16 @@ namespace GrillOptimizerTests
 
                 Rect rect = result[0];
                 Assert.That(rect.IsEmpty, Is.False);
-                Assert.That(rect.X, Is.EqualTo(0));
-                Assert.That(rect.Y, Is.EqualTo(0));
+                Assert.That(rect.Left, Is.EqualTo(0));
+                Assert.That(rect.Top, Is.EqualTo(0));
                 Assert.That(rect.Width, Is.EqualTo(MainRectWidth));
                 Assert.That(rect.Height, Is.EqualTo(MainRectHeight - TestRectH));
 
 
                 rect = result[1];
                 Assert.That(rect.IsEmpty, Is.False);
-                Assert.That(rect.X, Is.EqualTo(0));
-                Assert.That(rect.Y, Is.EqualTo(0));
+                Assert.That(rect.Left, Is.EqualTo(0));
+                Assert.That(rect.Top, Is.EqualTo(0));
                 Assert.That(rect.Width, Is.EqualTo(MainRectWidth - TestRectW));
                 Assert.That(rect.Height, Is.EqualTo(MainRectHeight));
             });
@@ -216,32 +211,32 @@ namespace GrillOptimizerTests
                 //Top
                 Rect rect = result[0];
                 Assert.That(rect.IsEmpty, Is.False);
-                Assert.That(rect.X, Is.EqualTo(0));
-                Assert.That(rect.Y, Is.EqualTo(0));
+                Assert.That(rect.Left, Is.EqualTo(0));
+                Assert.That(rect.Top, Is.EqualTo(0));
                 Assert.That(rect.Width, Is.EqualTo(MainRectWidth));
                 Assert.That(rect.Height, Is.EqualTo(testRect.Top));
 
                 //Left
                 rect = result[1];
                 Assert.That(rect.IsEmpty, Is.False);
-                Assert.That(rect.X, Is.EqualTo(0));
-                Assert.That(rect.Y, Is.EqualTo(0));
+                Assert.That(rect.Left, Is.EqualTo(0));
+                Assert.That(rect.Top, Is.EqualTo(0));
                 Assert.That(rect.Width, Is.EqualTo(testRect.Left));
                 Assert.That(rect.Height, Is.EqualTo(MainRectHeight));
 
                 //Right
                 rect = result[2];
                 Assert.That(rect.IsEmpty, Is.False);
-                Assert.That(rect.X, Is.EqualTo(testRect.Right));
-                Assert.That(rect.Y, Is.EqualTo(0));
+                Assert.That(rect.Left, Is.EqualTo(testRect.Right));
+                Assert.That(rect.Top, Is.EqualTo(0));
                 Assert.That(rect.Width, Is.EqualTo(MainRectWidth - testRect.Right));
                 Assert.That(rect.Height, Is.EqualTo(MainRectHeight));
 
                 //Bottom
                 rect = result[3];
                 Assert.That(rect.IsEmpty, Is.False);
-                Assert.That(rect.X, Is.EqualTo(0));
-                Assert.That(rect.Y, Is.EqualTo(testRect.Bottom));
+                Assert.That(rect.Left, Is.EqualTo(0));
+                Assert.That(rect.Top, Is.EqualTo(testRect.Bottom));
                 Assert.That(rect.Width, Is.EqualTo(MainRectWidth));
                 Assert.That(rect.Height, Is.EqualTo(MainRectHeight - testRect.Bottom));
             });

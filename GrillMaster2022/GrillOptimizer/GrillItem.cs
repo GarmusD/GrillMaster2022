@@ -1,30 +1,25 @@
-﻿using GrillOptimizer.Types;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using GrillMaster2022.DTO;
+using GrillMaster2022.GrillOptimizer.Types;
 
-namespace GrillOptimizer
+namespace GrillMaster2022.GrillOptimizer
 {
-    internal class GrillItem
+    public class GrillItem
     {
         public int Group => _group;
         public int ID => _id;
-        public int Width => _width;
-        public int Height => _height;
         public string Name => _name;
-        public bool Rotated { get => _rotated; set => SetRotation(value); }
-        public bool IsGrilled => _x > -1 && _y > -1;
-        public int AreaSq => _width * _height;
-        public Size Dimensions => new(_width, _height);
-        public Point Location => new(_x, _y);
-        public Rect UsedArea => new (_x, _y, _width, _height);
+        public bool Rotated { get => _rotated; set => SetRotated(value); }
+        public bool IsGrilled => _location.X > -1 && _location.Y > -1;
+        public int AreaSq => _dimensions.Width * _dimensions.Height;
+        public Size Dimensions => _dimensions;
+        public Point Location => _location;
+        public Rect UsedArea => new (_location.X, _location.Y, _dimensions.Width, _dimensions.Height);
 
 
         private readonly int _group;
         private readonly int _id;
-        private int _x, _y, _width, _height;
+        private Point _location;
+        private Size _dimensions;
         private readonly string _name;
         private bool _rotated = false;
 
@@ -32,25 +27,24 @@ namespace GrillOptimizer
         {
             _group = group;
             _id = id;
-            _x = _y = -1;
-            _width = grillOrderItem.Dimensions.Width;
-            _height = grillOrderItem.Dimensions.Height;
+            _location = new (-1, -1);
+            _dimensions = new (grillOrderItem.Dimensions.Width, grillOrderItem.Dimensions.Height);
             _name = grillOrderItem.Name ?? string.Empty;
         }
 
-        private void SetRotation(bool value)
+        private void SetRotated(bool value)
         {
             if(value != _rotated)
             {
                 _rotated = value;
-                (_width, _height) = (_height, _width);
+                //swap width and height
+                _dimensions = new(_dimensions.Height, _dimensions.Width);
             }
         }
 
         public void SetItemGrilled(Point location)
         {
-            _x = location.X;
-            _y = location.Y;
+            _location = location;
         }
     }
 }
