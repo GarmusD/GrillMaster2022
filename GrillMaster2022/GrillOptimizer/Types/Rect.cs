@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace GrillMaster2022.GrillOptimizer.Types
+﻿namespace GrillMaster2022.GrillOptimizer.Types
 {
     public enum Edge
     {

@@ -1,5 +1,6 @@
 ﻿namespace GrillMaster2022.GrillOptimizer.Types
 {
+
     public struct Point
     {
         public int X { get; }
