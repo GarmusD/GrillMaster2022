@@ -1,0 +1,11 @@
+{
+  "profiles": {
+    "GrillMaster.Client": {
+      "commandName": "Project",
+      "commandLineArgs": "-o=json -f asd",
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      }
+    }
+  }
+}
