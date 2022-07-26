@@ -1,13 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using RestSharp;
+﻿using RestSharp;
 using GrillMaster.Client.AppConfiguration;
-using GrillMaster.Client.Helpers;
 using GrillMaster.Client.Exceptions;
 using RestSharp.Authenticators;
+using GrillMaster.Client.DTO;
 
 namespace GrillMaster.Client
 {
@@ -29,9 +24,9 @@ namespace GrillMaster.Client
             RestRequest request = new ("/api/grill/optimize", Method.Post);
             request.AddBody(jsonOrder, "application/json");
             RestResponse response = _restClient.Execute(request);
-            if (response.IsSuccessful)
+            if (response.IsSuccessful && response.Content != null)
             {
-                return response.Content!;
+                return response.Content;
             }
             throw new GrillMasterApiErrorException();
         }
@@ -44,7 +39,7 @@ namespace GrillMaster.Client
             if (response.StatusCode == 0) throw new GrillMasterOfflineException();
             if(response.IsSuccessful && response.Content != null)
             {
-                // Token in response.Content is received encapsulated within quotes "__TOKEN__"
+                // Token string in response.Content is received encapsulated within quotes "__TOKEN__"
                 // Workaround - remove quotes.
                 _restClient.Authenticator = new JwtAuthenticator(response.Content.Replace("\"", ""));
                 return;
