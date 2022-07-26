@@ -14,12 +14,12 @@ namespace GrillMaster.Client.Renderer
             GetRenderer(outputOptions.Output).Render(outputOptions, optimizedOrder);
         }
 
-        private static IRenderer GetRenderer(Output output)
+        private static IRenderer GetRenderer(OutputTarget output)
         {
             return output switch
             {
-                Output.Console => new Console.ConsoleRenderer(),
-                Output.Json => new Json.JsonRenderer(),
+                OutputTarget.Console => new Console.ConsoleRenderer(),
+                OutputTarget.Json => new Json.JsonRenderer(),
                 _ => throw new NotImplementedException()
             };
         }

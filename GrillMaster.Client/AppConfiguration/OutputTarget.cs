@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace GrillMaster.Client.AppConfiguration
 {
-    public enum Output
+    public enum OutputTarget
     {
         Console,
         Json
