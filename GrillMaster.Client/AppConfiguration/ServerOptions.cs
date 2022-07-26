@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace GrillMaster.Client.AppConfiguration
+﻿namespace GrillMaster.Client.AppConfiguration
 {
     public class ServerOptions
     {
@@ -17,11 +11,11 @@ namespace GrillMaster.Client.AppConfiguration
 
         private Uri GetUri()
         {
-            Uri startup = new (Host);
+            Uri tempUri = new (Host);
             return new UriBuilder() 
             {
-                Scheme = startup.Scheme,
-                Host = startup.Host,
+                Scheme = tempUri.Scheme,
+                Host = tempUri.Host,
                 Port = Port
             }.Uri;
         }

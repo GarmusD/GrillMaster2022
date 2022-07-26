@@ -15,7 +15,7 @@ namespace GrillMaster.Client.AppConfiguration
         {
             bool handled = true;
 
-            var outputOption = new Option<Output>(new[] { "--output", "-o" }, "Specify how the app should render a grilled items.") { IsRequired = true };
+            var outputOption = new Option<OutputTarget>(new[] { "--output", "-o" }, "Specify how the app should render a grilled items.") { IsRequired = true };
             var jsonFileNameOption = new Option<FileInfo?>(new[] { "--filename", "-f" }, () => { return new FileInfo("grilled_order.json"); }, "Filename for json output.");
 
             var serverHostOption = new Option<string?>(new[] { "--server", "-s" }, "Host where GrillMaster.API app is running.");
@@ -96,11 +96,11 @@ namespace GrillMaster.Client.AppConfiguration
 
         private class OutputBinder
         {
-            private readonly Option<Output> _outputOption;
+            private readonly Option<OutputTarget> _outputOption;
             private readonly Option<FileInfo?> _jsonFileNameOption;
             private readonly OutputOptions _outputOptions;
 
-            public OutputBinder(OutputOptions outputOptions, Option<Output> outputOption, Option<FileInfo?> jsonFileNameOption)
+            public OutputBinder(OutputOptions outputOptions, Option<OutputTarget> outputOption, Option<FileInfo?> jsonFileNameOption)
             {
                 _outputOption = outputOption;
                 _jsonFileNameOption = jsonFileNameOption;
@@ -114,8 +114,8 @@ namespace GrillMaster.Client.AppConfiguration
                 _outputOptions.Output = output;
                 _outputOptions.JsonOutputPath = output switch
                 {
-                    Output.Console => null,
-                    Output.Json => jsonFileName,
+                    OutputTarget.Console => null,
+                    OutputTarget.Json => jsonFileName,
                     _ => throw new NotImplementedException(),
                 };
             }
