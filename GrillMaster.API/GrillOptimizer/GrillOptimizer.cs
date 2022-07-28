@@ -1,6 +1,5 @@
-﻿using GrillMaster.API.DTO;
-using GrillMaster.DTO;
-
+﻿using GrillMaster.Data.DTO;
+using GrillMaster.Data.Primitives;
 
 namespace GrillMaster.GrillOptimizer
 {
@@ -12,7 +11,7 @@ namespace GrillMaster.GrillOptimizer
 
         private readonly int _grillWidth;
         private readonly int _grillHeight;
-        private readonly GrillItemsList _itemsToGrill = new();
+        private readonly GrillItemsList _itemsToGrill;
 
         public GrillOptimizer(GrillOrder grillOrder)
         {
@@ -21,13 +20,12 @@ namespace GrillMaster.GrillOptimizer
             _grillWidth = grillOrder.GrillSize.Width;
             _grillHeight = grillOrder.GrillSize.Height;
 
-            grillOrder.MenuItems.Sort((a, b) => b.Dimensions.Squares.CompareTo(a.Dimensions.Squares));
-
-            foreach (GrillOrderItem grillOrderItem in grillOrder.MenuItems)
-            {
-                for (var i = 0; i < grillOrderItem.Count; i++)
-                    _itemsToGrill.Add( new GrillItem(grillOrderItem) );
-            }
+            _itemsToGrill = new GrillItemsList();
+            _itemsToGrill.AddRange(grillOrder.MenuItems
+                .SelectMany(menuItem => 
+                    Enumerable.Range(0, menuItem.Count).Select(s => new GrillItem(menuItem)))
+                .OrderByDescending(menuItem => menuItem.Dimensions.Squares)
+                .ToList());
         }
 
         public OptimizedOrder Optimize()
@@ -63,26 +61,21 @@ namespace GrillMaster.GrillOptimizer
 
         private OptimizedOrder CreateOptimizedOrder(List<GrillPan> grillPans)
         {
-            List<OptimizedPan> optPans = new();
-            foreach (GrillPan grillPan in grillPans)
-            {
-                optPans.Add(CreateOptimizedPan(grillPan));
-            }
-            return new(new Types.Size(_grillWidth, _grillHeight), optPans);
+            List<OptimizedPan> optPans = grillPans
+                .Select(item => CreateOptimizedPan(item))
+                .ToList();
+            return new() { GrillSize = new Size(_grillWidth, _grillHeight), GrilledPans = optPans };
         }
 
-        private OptimizedPan CreateOptimizedPan(GrillPan grillPan)
+        private static OptimizedPan CreateOptimizedPan(GrillPan grillPan)
         {
-            OptimizedPan optPan = new();
-            foreach (GrillItem item in grillPan.GrilledItems)
-            {
-                OptimizedItem optItem = new(
-                    new Types.Rect(item.Location.X, item.Location.Y, item.Dimensions.Width, item.Dimensions.Height),
-                    item.Name
-                );
-                optPan.Add(optItem);
-            }
-            return optPan;
+            var op = new OptimizedPan();
+            op.AddRange(grillPan.GrilledItems
+                .Select(item => new OptimizedItem(
+                                        new Rect(item.Location.X, item.Location.Y, item.Dimensions.Width, item.Dimensions.Height),
+                                        item.Name))
+                .ToList());
+            return op;
         }
     }
 }
