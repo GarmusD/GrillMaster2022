@@ -1,6 +1,5 @@
-﻿using GrillMaster.DTO;
-using GrillMaster.GrillOptimizer.Types;
-
+﻿using GrillMaster.Data.DTO;
+using GrillMaster.Data.Primitives;
 
 namespace GrillMaster.GrillOptimizer
 {
@@ -9,7 +8,6 @@ namespace GrillMaster.GrillOptimizer
         public string Name => _name;
         public bool Rotated { get => _rotated; set => SetRotated(value); }
         public bool IsGrilled => _location.X > -1 && _location.Y > -1;
-        public int AreaSq => _dimensions.Width * _dimensions.Height;
         public Size Dimensions => _dimensions;
         public Point Location => _location;
         public Rect UsedArea => new (_location.X, _location.Y, _dimensions.Width, _dimensions.Height);

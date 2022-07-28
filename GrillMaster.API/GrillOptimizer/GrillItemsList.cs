@@ -1,5 +1,4 @@
-﻿using GrillMaster.GrillOptimizer.Types;
-
+﻿using GrillMaster.Data.Primitives;
 
 namespace GrillMaster.GrillOptimizer
 {
