@@ -17,7 +17,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\GrillMaster2022\GrillMaster2022.csproj" />
+    <ProjectReference Include="..\GrillMaster.API\GrillMaster.API.csproj" />
   </ItemGroup>
 
 </Project>
