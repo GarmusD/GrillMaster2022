@@ -1,5 +1,5 @@
-using GrillMaster2022.DTO;
-using GrillMaster2022.GrillOptimizer.Types;
+using GrillMaster.Data.DTO;
+using GrillMaster.Data.Primitives;
 using System.Text.Json;
 
 namespace GrillMaster2022.Tests
