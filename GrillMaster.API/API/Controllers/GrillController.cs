@@ -1,5 +1,5 @@
 ﻿using GrillMaster.API.Models.Account;
-using GrillMaster.DTO;
+using GrillMaster.Data.DTO;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -11,6 +11,13 @@ namespace GrillMaster.API.Controllers
     [ApiController]
     public class GrillController : ControllerBase
     {
+        ILogger<GrillController> _logger;
+
+        public GrillController(ILogger<GrillController> logger)
+        {
+            _logger = logger;
+        }
+
         private UserModel? GetCurrentUser()
         {
             if (HttpContext.User.Identity is ClaimsIdentity identity)
