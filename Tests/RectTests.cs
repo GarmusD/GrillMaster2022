@@ -1,4 +1,4 @@
-﻿using GrillMaster2022.GrillOptimizer.Types;
+﻿using GrillMaster.Data.Primitives;
 
 namespace GrillMaster2022.Tests
 {
